@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   n8n:
     image: docker.n8n.io/n8nio/n8n
@@ -7,38 +5,43 @@ services:
     ports:
       - "5678:5678"
     environment:
-      GENERIC_TIMEZONE: UTC
-      TZ: UTC
-      N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS: "true"
-      N8N_RUNNERS_ENABLED: "true"
+      - GENERIC_TIMEZONE=UTC
+      - TZ=UTC
     volumes:
       - n8n_data:/home/node/.n8n
     restart: unless-stopped
+
   short-video-maker:
     image: gyoridavid/short-video-maker:latest-tiny
     container_name: short-video-maker
     ports:
       - "3123:3123"
     environment:
-      LOG_LEVEL: "debug"
-      PEXELS_API_KEY: VsX1OIrcrboQaInRFNQpmxKLAlDWdNyXeS1S7LBrgwSAJ69sOFvjHw2I
+      - LOG_LEVEL=debug
+      - PEXELS_API_KEY=yK8enpySKWtrlsCCs3ENQcPzCaJcCXAXZEq63vrqhBzPe1N2JdKbpX5K
+      - CORS_ORIGIN=http://localhost:3000  
     restart: unless-stopped
+
   ollama:
     image: ollama/ollama
     container_name: ollama
     ports:
       - "11434:11434"
     volumes:
-      - ollama:/root/.ollama
+      - ollama_data:/root/.ollama
     deploy:
       resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu]
+        limits:
+          memory: 8G 
     restart: unless-stopped
+  redis:
+    image: redis:alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    restart: always
+
+
 volumes:
   n8n_data:
-  ollama:
-
+  ollama_data:
