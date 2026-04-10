@@ -1,0 +1,83 @@
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id           Int           @id @default(autoincrement())
+  email        String        @unique
+  username     String        @unique
+  stripeCustomerId String?   @unique
+  password     String
+  plan         Plan          @default(FREE)
+  credits      Int           @default(5)
+  role         String?
+  transactions Transaction[]
+  projects     Projects[]
+  jobHistory   JobHistory[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model Projects {
+  id        Int      @id @default(autoincrement())
+  videoId   String?  @unique
+  topic     String?
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+
+}
+
+model JobHistory {
+  id            Int       @id @default(autoincrement())
+  jobId         String    @unique
+  topic         String
+  userId        Int
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan          Plan
+  priority      Int
+  status        JobStatus @default(WAITING)
+  startedAt     DateTime?
+  completedAt   DateTime?
+  processingMs  Int?
+  error         String?
+  videoId       String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Transaction {
+  id        Int             @id @default(autoincrement())
+  amount    Int
+  type      TransactionType @default(USAGE)
+  reason    String?
+  userId    Int
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime        @default(now())
+}
+
+enum Plan {
+  FREE
+  PREMIUM
+  ULTIMATE
+}
+
+enum TransactionType {
+  PURCHASE
+  USAGE
+  REFUND
+}
+
+enum JobStatus {
+  WAITING
+  ACTIVE
+  COMPLETED
+  FAILED
+  DELAYED
+}
